@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "cogxai-memory": {
+      "command": "npx",
+      "args": [
+        "cogxai",
+        "mcp-serve"
+      ],
+      "env": {
+        "CORTEX_HOST_URL": "https://cogxai.org",
+        "COGXAI_AGENT_NAME": "cogxai"
+      }
+    }
+  }
+}
