@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogxAI Knowledge Graph</title>
+  <style>
+    :root {
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+    scrollbar-width: thin;
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+      --bg: #0a0a0f;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-faint: #6b7280;
+      --accent: #00d4ff;
+      --accent-purple: #6366f1;
+      --border: rgba(255, 255, 255, 0.06);
+      --mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 160px);
+      max-width: 1200px;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: none;
+      border-radius: 16px;
+    }
+    .nav-inner {
+      padding: 0 36px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-left: auto;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: auto;
+      padding: 4px;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text-muted);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    @media (max-width: 768px) {
+      nav { width: calc(100% - 24px); }
+      .nav-toggle { display: flex; flex-direction: column; }
+      .nav-links {
+        display: none; position: absolute; top: 52px; left: 0; right: 0;
+        background: rgba(10, 10, 15, 0.95);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column; padding: 1.2rem 2rem; gap: 1.2rem;
+      }
+      .nav-links.open { display: flex; }
+      .nav-inner { padding: 0 20px; }
+      .nav-links a {
+        padding: 10px 24px;
+        width: 100%;
+      }
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      margin-top: 72px;
+      padding: 0.6rem 2rem;
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.015);
+    }
+    .stat {
+      display: flex;
+      gap: 0.3rem;
+      align-items: center;
+    }
+    .stat-label { color: var(--text-faint); }
+    .stat-value {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Graph ── */
+    #graph-container {
+      flex: 1;
+      position: relative;
+    }
+    #graph {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Tooltip ── */
+    .tooltip {
+      position: absolute;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      font-family: var(--mono);
+      max-width: 300px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 200;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip-title {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .tooltip-type {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+      letter-spacing: 1.5px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .controls button {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .controls button:hover {
+      background: rgba(0, 212, 255, 0.08);
+      border-color: rgba(0, 212, 255, 0.3);
+      color: var(--accent);
+    }
+    .controls button.active {
+      background: rgba(0, 212, 255, 0.12);
+      border-color: rgba(0, 212, 255, 0.4);
+      color: var(--accent);
+    }
+
+    /* ── States ── */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+    .empty {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .empty h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .empty p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <nav><div class="nav-inner"><a href="/" class="nav-logo">CogxAI</a><button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button><div class="nav-links" id="navLinks"><a href="/install.html">For Agents</a><a href="/docs.html">Docs</a><a href="/brain.html">Brain</a><a href="/explore">Explorer</a><a href="/setup">Get Started</a>
+      <a href="https://github.com/Black-dork/cogxai" target="_blank">GitHub</a>
+      <a href="https://x.com/" target="_blank">X</a><a href="/register" style="background: rgba(0,212,255,0.08); color: #00d4ff; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 11px; line-height: 1.7; letter-spacing: 1.5px; border: 1px solid rgba(0,212,255,0.3);">Register</a></div></div></nav>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">Entities:</span>
+      <span class="stat-value" id="entity-count">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Relations:</span>
+      <span class="stat-value" id="relation-count">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Mentions:</span>
+      <span class="stat-value" id="mention-count">—</span>
+    </div>
+  </div>
+
+  <div id="graph-container">
+    <div class="loading" id="loading">Building knowledge graph...</div>
+    <div class="empty" id="empty" style="display:none">
+      <h2>No entities yet</h2>
+      <p>The knowledge graph populates as CogxAI processes interactions and identifies entities within stored memories.</p>
+    </div>
+    <svg id="graph"></svg>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="controls">
+      <button id="toggle-memories" class="active">Show Memories</button>
+      <button id="zoom-fit">Fit to View</button>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (navToggle && navLinks) {
+      navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('open');
+      });
+    }
+
+    const API_BASE = '';
+    let simulation, nodes = [], links = [], includeMemories = true;
+
+    const typeColors = {
+      'person':             '#00d4ff',
+      'project':            '#34d399',
+      'concept':            '#fbbf24',
+      'token':              '#f87171',
+      'wallet':             '#a78bfa',
+      'location':           '#60a5fa',
+      'event':              '#f472b6',
+      'memory-episodic':    'rgba(0, 212, 255, 0.45)',
+      'memory-semantic':    'rgba(52, 211, 153, 0.45)',
+      'memory-procedural':  'rgba(251, 191, 36, 0.45)',
+      'memory-self_model':  'rgba(248, 113, 113, 0.45)',
+    };
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/graph/stats`);
+        const data = await res.json();
+        document.getElementById('entity-count').textContent = data.entityCount || 0;
+        document.getElementById('relation-count').textContent = data.relationCount || 0;
+        document.getElementById('mention-count').textContent = data.mentionCount || 0;
+        return data;
+      } catch (e) {
+        console.error('Stats fetch failed:', e);
+        return null;
+      }
+    }
+
+    async function fetchGraph() {
+      try {
+        const params = new URLSearchParams({
+          includeMemories: includeMemories.toString(),
+          limit: '150'
+        });
+        const res = await fetch(`${API_BASE}/api/graph?${params}`);
+        const data = await res.json();
+        return data;
+      } catch (e) {
+        console.error('Graph fetch failed:', e);
+        return { nodes: [], edges: [] };
+      }
+    }
+
+    function renderGraph(data) {
+      const loading = document.getElementById('loading');
+      const empty = document.getElementById('empty');
+      const svg = d3.select('#graph');
+
+      loading.style.display = 'none';
+
+      if (!data.nodes || data.nodes.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      const container = document.getElementById('graph-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      svg.attr('width', width).attr('height', height);
+      svg.selectAll('*').remove();
+
+      const g = svg.append('g');
+
+      // Zoom behavior
+      const zoom = d3.zoom()
+        .scaleExtent([0.1, 4])
+        .on('zoom', (e) => g.attr('transform', e.transform));
+      svg.call(zoom);
+
+      // Build node/link data
+      nodes = data.nodes.map(n => ({ ...n }));
+      links = data.edges.map(e => ({
+        source: e.source,
+        target: e.target,
+        type: e.type,
+        weight: e.weight || 0.5
+      }));
+
+      // Create simulation
+      simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(80))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(d => (d.size || 10) + 5));
+
+      // Draw links
+      const link = g.append('g')
+        .attr('class', 'links')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', 'rgba(255,255,255,0.12)')
+        .attr('stroke-opacity', d => 0.2 + d.weight * 0.5)
+        .attr('stroke-width', d => 1 + d.weight * 2);
+
+      // Draw nodes
+      const node = g.append('g')
+        .attr('class', 'nodes')
+        .selectAll('circle')
+        .data(nodes)
+        .join('circle')
+        .attr('r', d => d.size || 8)
+        .attr('fill', d => typeColors[d.type] || '#6b7280')
+        .attr('stroke', 'rgba(255,255,255,0.15)')
+        .attr('stroke-width', 1.5)
+        .style('cursor', 'pointer')
+        .call(drag(simulation));
+
+      // Draw labels (entities only)
+      const labels = g.append('g')
+        .attr('class', 'labels')
+        .selectAll('text')
+        .data(nodes.filter(n => !n.type.startsWith('memory-')))
+        .join('text')
+        .attr('font-size', '10px')
+        .attr('font-family', 'inherit')
+        .attr('fill', '#9ca3af')
+        .attr('text-anchor', 'middle')
+        .attr('dy', d => (d.size || 8) + 12)
+        .text(d => d.label.slice(0, 15));
+
+      // Tooltip
+      const tooltip = document.getElementById('tooltip');
+      node
+        .on('mouseover', (e, d) => {
+          tooltip.innerHTML = `
+            <div class="tooltip-type">${d.type}</div>
+            <div class="tooltip-title">${d.label}</div>
+          `;
+          tooltip.style.left = (e.pageX + 10) + 'px';
+          tooltip.style.top = (e.pageY - 10) + 'px';
+          tooltip.classList.add('visible');
+        })
+        .on('mouseout', () => tooltip.classList.remove('visible'))
+        .on('mousemove', (e) => {
+          tooltip.style.left = (e.pageX + 10) + 'px';
+          tooltip.style.top = (e.pageY - 10) + 'px';
+        });
+
+      simulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        node
+          .attr('cx', d => d.x)
+          .attr('cy', d => d.y);
+
+        labels
+          .attr('x', d => d.x)
+          .attr('y', d => d.y);
+      });
+
+      // Fit to view
+      document.getElementById('zoom-fit').onclick = () => {
+        const bounds = g.node().getBBox();
+        const dx = bounds.width;
+        const dy = bounds.height;
+        const x = bounds.x + dx / 2;
+        const y = bounds.y + dy / 2;
+        const scale = 0.9 / Math.max(dx / width, dy / height);
+        const translate = [width / 2 - scale * x, height / 2 - scale * y];
+        svg.transition().duration(500).call(
+          zoom.transform,
+          d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+        );
+      };
+    }
+
+    function drag(simulation) {
+      return d3.drag()
+        .on('start', (e, d) => {
+          if (!e.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on('drag', (e, d) => {
+          d.fx = e.x;
+          d.fy = e.y;
+        })
+        .on('end', (e, d) => {
+          if (!e.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        });
+    }
+
+    async function init() {
+      await fetchStats();
+      const graph = await fetchGraph();
+      renderGraph(graph);
+
+      document.getElementById('toggle-memories').onclick = async function() {
+        includeMemories = !includeMemories;
+        this.classList.toggle('active', includeMemories);
+        this.textContent = includeMemories ? 'Show Memories' : 'Hide Memories';
+        document.getElementById('loading').style.display = 'block';
+        const graph = await fetchGraph();
+        renderGraph(graph);
+      };
+    }
+
+    init();
+
+    // Re-render on resize
+    window.addEventListener('resize', async () => {
+      const graph = await fetchGraph();
+      renderGraph(graph);
+    });
+  </script>
+</body>
+</html>
