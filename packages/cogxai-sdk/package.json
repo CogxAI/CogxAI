@@ -1,0 +1,17 @@
+{
+  "name": "cogxai-sdk",
+  "private": true,
+  "description": "COGXAI — Persistent memory for AI agents",
+  "workspaces": [
+    "packages/brain",
+    "packages/cortex",
+    "packages/local"
+  ],
+  "scripts": {
+    "test": "npm run test:brain && npm run test:cortex",
+    "test:brain": "cd packages/brain && npx tsx test/e2e.ts",
+    "test:cortex": "cd packages/cortex && npx tsx test/e2e.ts",
+    "test:local": "cd packages/local && npx tsx test/basic.ts"
+  },
+  "license": "MIT"
+}
