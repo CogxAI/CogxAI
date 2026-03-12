@@ -1,0 +1,53 @@
+{
+  "name": "@cogxai/cortex",
+  "version": "0.1.0",
+  "description": "COGXAI Cortex — Portable, Private, Permissionless, Poly-model, Persistent memory integration layer",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./base": {
+      "import": "./dist/base.js",
+      "types": "./dist/base.d.ts"
+    },
+    "./adapters/openai": {
+      "import": "./dist/adapters/openai.js",
+      "types": "./dist/adapters/openai.d.ts"
+    },
+    "./adapters/langchain": {
+      "import": "./dist/adapters/langchain.js",
+      "types": "./dist/adapters/langchain.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx test/e2e.ts"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "agents",
+    "portable",
+    "base",
+    "wallet",
+    "privacy"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "ethers": ">=6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ethers": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  }
+}
