@@ -1,0 +1,43 @@
+{
+  "name": "cogxai-cloud",
+  "version": "2.8.1",
+  "description": "Cloud providers for CogxAI — Supabase storage + Voyage AI embeddings",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "memory",
+    "agents",
+    "supabase",
+    "voyage",
+    "embeddings",
+    "cogxai"
+  ],
+  "license": "MIT",
+  "author": "Black-dork",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Black-dork/cogxai"
+  },
+  "homepage": "https://cogxai.org",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
+    "@types/node": "^25.4.0",
+    "typescript": "^5.9.3"
+  }
+}
