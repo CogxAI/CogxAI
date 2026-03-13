@@ -1,6 +1,6 @@
 {
   "name": "cogxai",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "description": "CogxAI — Persistent memory SDK for AI agents. Store, recall, dream, and reflect. Stanford Generative Agents architecture on Supabase + pgvector.",
   "main": "dist/sdk/index.js",
   "types": "dist/sdk/index.d.ts",
