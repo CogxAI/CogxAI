@@ -958,6 +958,28 @@
           <li>Paste the config (merge if file already exists)</li>
           <li>Restart your IDE</li>
         </ol>
+
+        <div class="anim-7">
+          <button class="collapsible-toggle" onclick="toggleCollapsible(this)">
+            <span class="collapsible-chevron">&#9654;</span> Where does this file go?
+          </button>
+          <div class="collapsible-body">
+            <ul class="path-list">
+              <li>
+                <div class="path-label">Claude Desktop</div>
+                <div class="path-value">~/Library/Application Support/Claude/claude_desktop_config.json</div>
+              </li>
+              <li>
+                <div class="path-label">Claude Code</div>
+                <div class="path-value">.mcp.json in your project folder</div>
+              </li>
+              <li>
+                <div class="path-label">Cursor</div>
+                <div class="path-value">~/.cursor/mcp.json</div>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <!-- STEP 4: ENV FILE -->
@@ -1157,7 +1179,7 @@ async function register() {
     const res = await fetch('https://cogxai.org/api/cortex/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, wallet: wallet || 'pending' }),
+      body: JSON.stringify({ name, ...(wallet && { wallet }) }),
     });
 
     const data = await res.json();
@@ -1239,10 +1261,12 @@ function useExistingKey() {
 
 function selectIde(ide) {
   state.selectedIde = ide;
+  state.ide = ide;
   document.querySelectorAll('.ide-card').forEach(c => {
     c.classList.toggle('selected', c.dataset.ide === ide);
   });
   renderConfig();
+  if (typeof updateIdePath === 'function') updateIdePath();
 }
 
 // ─── Config Generation ──────────────────────────────
