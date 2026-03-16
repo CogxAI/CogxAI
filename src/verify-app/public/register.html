@@ -446,7 +446,7 @@
     <p class="subtitle">No credentials required. Your machine handles everything.</p>
 
     <div class="snippet-label">For Claude Desktop / Cursor (MCP)</div>
-    <pre><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># One command, done</span>
+    <pre data-raw="npx cogxai mcp-install --local"><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># One command, done</span>
 npx cogxai mcp-install --local</pre>
 
     <div class="snippet-label">Or add manually to Claude Desktop config</div>
@@ -460,7 +460,15 @@ npx cogxai mcp-install --local</pre>
 }</pre>
 
     <div class="snippet-label">For Node.js / TypeScript</div>
-    <pre><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># Install</span>
+    <pre data-raw="# Install
+npm install cogxai
+
+# Use
+import { Cortex } from 'cogxai';
+const brain = new Cortex({ local: true });
+await brain.init();
+await brain.store({ content: 'Hello!', type: 'episodic' });
+const memories = await brain.recall({ query: 'hello' });"><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># Install</span>
 npm install cogxai
 
 <span class="cmt"># Use</span>
@@ -488,12 +496,29 @@ const memories = await brain.recall({ query: 'hello' });</pre>
     </div>
 
     <div class="snippet-label">Setup</div>
-    <pre><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># Install and run the setup wizard</span>
+    <pre data-raw="# Install and run the setup wizard
+npm install cogxai
+npx cogxai setup"><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button><span class="cmt"># Install and run the setup wizard</span>
 npm install cogxai
 npx cogxai setup</pre>
 
     <div class="snippet-label">Or configure manually</div>
-    <pre><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button>import { Cortex } from 'cogxai';
+    <pre data-raw="import { Cortex } from 'cogxai';
+
+const brain = new Cortex({
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    serviceKey: process.env.SUPABASE_KEY,
+  },
+  embedding: {
+    provider: 'voyage',
+    apiKey: process.env.VOYAGE_API_KEY,
+    model: 'voyage-4-large',
+    dimensions: 1024,
+  },
+  agentId: 'my-agent',
+});
+await brain.init();"><button class="snippet-copy" onclick="copyToClipboard(this.parentElement.dataset.raw, this)">Copy</button>import { Cortex } from 'cogxai';
 
 const brain = new Cortex({
   supabase: {
